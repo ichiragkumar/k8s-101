@@ -1,92 +1,131 @@
-// To run the nginx container on port 3000 and expose it to the host machine
- docker run -p 3000:80 nginx  
+## 🚀 Docker: Run NGINX Locally
+```bash
+docker run -p 3000:80 nginx
+```
+- Runs an NGINX container.
+- Maps container port `80` → host port `3000`.
 
+---
 
-// ceate kubernetes cluster
+## ☸️ Kubernetes with `kind` (Kubernetes IN Docker)
 
+### ✅ Create Clusters
+```bash
 kind create cluster --name kind-cluster
 kind create cluster --name sunday
+```
 
-//  how to create a pod
-ichiragkumar:~/Desktop/Projects/k8s/k8s-101/week2$ kubectl run moongo-pod --image=nginx --port=80
-ichiragkumar:~/Desktop/Projects/k8s/k8s-101/week2$ kubectl run nginx-pod --image=nginx --port=80
+---
 
+## 📦 Creating Pods
 
- // how to delete pods 
+### ✅ Run Pods from CLI
+```bash
+kubectl run moongo-pod --image=nginx --port=80
+kubectl run nginx-pod --image=nginx --port=80
+```
 
- ichiragkumar:~/Desktop/Projects/k8s/k8s-101/week2$ kubectl delete pod moongo-pod
+### ❌ Delete Pods
+```bash
+kubectl delete pod moongo-pod
+kubectl delete pod nginx-pod
+```
 
+---
 
- // apply Deploymenent manifest
+## 📄 Deployments
 
+### ✅ Apply a Deployment Manifest
+```bash
+kubectl apply -f deployment.yml
+```
 
- // check deployment explanation
- kubectl explain deployment
+### 🧠 Learn About Deployments
+```bash
+kubectl explain deployment
+```
 
+### 🔍 Get All Deployments
+```bash
+kubectl get deployments
+```
 
-// get al deployments
-ichiragkumar:~/Desktop/Projects/k8s/k8s-101/week2$ kubectl get deployment    
+### 🔍 Get All Pods (including ones created by deployments)
+```bash
+kubectl get pods
+```
 
+### ❌ Delete a Pod from Deployment
+```bash
+kubectl delete pod <pod-name>
+```
+- The **Deployment will automatically recreate it** to maintain desired replica count.
 
-// now you can get pods , from this deployment
-ichiragkumar:~/Desktop/Projects/k8s/k8s-101/week2$ kubectl get pods
+### 🔍 Get ReplicaSets (created by Deployment)
+```bash
+kubectl get replicasets
+```
 
+### ❌ Delete Deployment (and everything it created)
+```bash
+kubectl delete deployment nginx-deployment
+```
 
-/// and if you delete any pods from , deployment , Deployment will make sure, 
-all pods are up
+> 📝 **Important Concepts:**
+>
+> 1. **Deployment** creates and manages **ReplicaSet**
+> 2. **ReplicaSet** creates and maintains **Pods**
+> 3. Deleting a Deployment will delete:
+>    - the Deployment itself
+>    - its associated ReplicaSet
+>    - the Pods managed by that ReplicaSet
 
+---
 
-// delete a pods
-ichiragkumar:~/Desktop/Projects/k8s/k8s-101/week2$ kubectl delete pod nginx-pod
+## 🔁 ReplicaSet (without Deployment)
 
-// check deployment
-ichiragkumar:~/Desktop/Projects/k8s/k8s-101/week2$ kubectl get deployment
+### ✅ Apply a ReplicaSet YAML
+```bash
+kubectl apply -f replicaset.yml
+```
 
-// check the pods
-ichiragkumar:~/Desktop/Projects/k8s/k8s-101/week2$ kubectl get pods
-
-
-
-// get all replicasets
-ichiragkumar:~/Desktop/Projects/k8s/k8s-101/week2$ kubectl get replicaset
-
-
-
-// delete the deployemnt 
-ichiragkumar:~/Desktop/Projects/k8s/k8s-101/week2$ kubectl delete deployment nginx-deployment
-NOTE:
-    1. Deployment creaets the replica sets
-    2. Replica sets creates the pods
-
-    and if you delete the deployment, 
-    replica sets will be deleted as well
-    and pods will be deleted as well
-
-
-
-// creting a replicaset, write a .yml file [ manifest ] and apply it
-ichiragkumar:~/Desktop/Projects/k8s/k8s-101/week2$ kubectl apply -f replicaset.yml
+Example output:
+```bash
 replicaset.apps/nginx-replicaset created
-ichiragkumar:~/Desktop/Projects/k8s/k8s-101/week2$ kubectl get rs                 
+```
+
+### 🔍 View ReplicaSets
+```bash
+kubectl get rs
+```
+
+Example output:
+```bash
 NAME               DESIRED   CURRENT   READY   AGE
-nginx-replicaset   3         3         2       6s
-ichiragkumar:~/Desktop/Projects/k8s/k8s-101/week2$ 
+nginx-replicaset   3         3         3       10s
+```
 
+> ✔️ **Yes, a ReplicaSet also creates and manages Pods**  
+> ❌ **But it does not support rolling updates, rollback, etc. like a Deployment does**
 
+### ⚠️ Common Misconception
 
-it looks like , same as deployment, replica set creates the pods
-but replica set is not a deployment
-"if you delete the replica set, pods will not be deleted"
+> “If you delete the ReplicaSet, the Pods will not be deleted” — ❌ **Incorrect**
 
-It deletes:
+Actually:
+- **Pods will be deleted**, because they are **owned by the ReplicaSet** (via `ownerReferences`).
+- You can verify this with:
+  ```bash
+  kubectl get pods -o wide
+  ```
 
-The Deployment
+---
 
-The associated ReplicaSet
+## 🎯 Summary
 
-All Pods (since RS owns the Pods)
-
-
-
-
+| Object        | Manages         | Can Be Used Alone | Supports Rollout | Deletes Pods on Deletion |
+|---------------|------------------|-------------------|------------------|---------------------------|
+| Pod           | —                | ✅ Yes            | ❌ No            | ✅ Yes                    |
+| ReplicaSet    | Pods             | ✅ Yes            | ❌ No            | ✅ Yes                    |
+| Deployment    | ReplicaSet → Pods| ✅ Yes            | ✅ Yes           | ✅ Yes                    |
 
